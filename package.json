@@ -10,9 +10,12 @@
     "@types/node": "^16.18.2",
     "@types/react": "^18.0.24",
     "@types/react-dom": "^18.0.8",
+    "easy-db-browser": "^2.4.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-quill": "^2.0.0",
     "react-scripts": "5.0.1",
+    "react-split": "^2.0.14",
     "typescript": "^4.8.4",
     "web-vitals": "^2.1.4"
   },
