@@ -1,9 +1,10 @@
-import { CSSProperties, ReactNode, useState } from "react";
+import { CSSProperties, ReactNode, useState, createElement } from "react";
 import Icon from '@mdi/react';
 
 import { colors } from "./colors";
 
 type FlexProps = {
+    tag?: string,
     style?: CSSProperties,
     grow?: number,
     basis?: number,
@@ -13,11 +14,10 @@ type FlexProps = {
     children: ReactNode
 };
 
-export function Flex({ style, grow, basis, row, align, justify, children, ...divAttr }: FlexProps & React.HTMLAttributes<HTMLDivElement>) {
-
-    return <div
-        {...divAttr}
-        style={{
+export function Flex({ tag = "div", style, grow, basis, row, align, justify, children, ...divAttr }: FlexProps & React.HTMLAttributes<HTMLDivElement>) {
+    return createElement(tag, {
+        ...divAttr,
+        style: {
             display: "flex",
             flexDirection: row ? "row" : "column",
             alignItems: align,
@@ -25,17 +25,15 @@ export function Flex({ style, grow, basis, row, align, justify, children, ...div
             flexGrow: grow,
             flexBasis: basis ? `${basis}px` : undefined,
             ...style
-        }}
-    >
-        {children}
-    </div>;
+        }
+    }, children);
 }
 
 type ButtonProps = {
     active?: boolean,
     style?: CSSProperties,
     children: ReactNode,
-    onClick: () => void,
+    onClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void,
 };
 
 export function Button({ active, style, children, onClick }: ButtonProps) {
@@ -65,13 +63,14 @@ type ButtonIconProps = {
     text: string,
     active?: boolean,
     style?: CSSProperties,
-    onClick: () => void,
+    onClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void,
 };
 
 export function ButtonIcon({ icon, text, active, style, onClick }: ButtonIconProps) {
     const [hover, setHover] = useState(false);
 
     return <Flex
+        tag="a"
         row
         align="center"
         justify="center"
