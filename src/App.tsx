@@ -106,9 +106,9 @@ function checkLoadFile(text: string): null | Save {
   }
 }
 
-function useStoredState(key: StorageKey, defaultState: string): [state: string, setState: (state: string) => void, reload: () => void] {
+function useStoredState(key: StorageKey): [state: string, setState: (state: string) => void, reload: () => void] {
   const [change, setChange] = useState(false);
-  const [state, setState] = useState(defaultState);
+  const [state, setState] = useState(EMPTY_SAVE[key]);
 
   useEffect(() => {
     select<StoredStateRow>(COLLECTION_STORED_STATE, key).then(row => {
@@ -136,7 +136,7 @@ export default function App() {
   const fileInput = useRef<null | HTMLInputElement>(null);
   const [page, setPage] = useState(Page.Note);
 
-  const [picture, setPicture, reloadPicture] = useStoredState(StorageKey.Picture, "");
+  const [picture, setPicture, reloadPicture] = useStoredState(StorageKey.Picture);
 
   const [reload, setReload] = useState(false);
 
@@ -281,7 +281,7 @@ export default function App() {
 }
 
 function Content({ storageKey, title, reload, ...editorProps }: { storageKey: StorageKey, reload: boolean, title?: string } & Partial<EditorProps>) {
-  const [text, setText, reloadText] = useStoredState(storageKey, "");
+  const [text, setText, reloadText] = useStoredState(storageKey);
 
   useEffect(() => {
     reloadText();
@@ -298,7 +298,7 @@ function Content({ storageKey, title, reload, ...editorProps }: { storageKey: St
 
 function InputText({ style, storageKey, reload }: { style?: CSSProperties, storageKey: StorageKey, reload: boolean }) {
   const [focus, setFocus] = useState(false);
-  const [text, setText, reloadText] = useStoredState(storageKey, "");
+  const [text, setText, reloadText] = useStoredState(storageKey);
 
   useEffect(() => {
     reloadText();
