@@ -12,7 +12,6 @@ import { ButtonIcon, Flex } from './Components';
 import packageInfo from "../package.json";
 
 
-
 enum StorageKey {
   Name = "name",
   Motto = "motto",
@@ -179,7 +178,7 @@ export default function App() {
   }
 
   async function handlePicture(file: File) {
-    const url = await resizeImage(file, { maxWidth: 200 * 2, maxHeight: 250 * 2 });
+    const url = await resizeImage(file, { maxWidth: PICTURE_SIZE.width * 2, height: PICTURE_SIZE.height * 2 });
     setPicture(url);
   }
 
