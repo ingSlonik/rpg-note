@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import { mdiFloppy, mdiUpload, mdiFountainPen, mdiArmFlex, mdiSword } from '@mdi/js';
 
 import Split from "react-split";
@@ -15,6 +15,8 @@ const { select, update } = easyDB({});
 
 
 enum StorageKey {
+  Name = "name",
+  Motto = "motto",
   Role = "role",
   Characters = "characters",
   ActionNote = "actionNote",
@@ -24,7 +26,7 @@ enum StorageKey {
 };
 
 type Save = {
-  name: string,
+  app: string,
   version: string,
 } & { [key in StorageKey]: string };
 
@@ -47,7 +49,7 @@ async function getDataForSave() {
   const data = await select<StoredStateRow>(COLLECTION_STORED_STATE);
 
   const saveData: Partial<Save> = {
-    name: packageInfo.name,
+    app: packageInfo.name,
     version: packageInfo.version,
   };
 
@@ -74,7 +76,7 @@ function checkLoadFile(text: string): null | Save {
 
     if (typeof f !== "object" || f === null) return null;
 
-    if (f.name !== packageInfo.name) return null;
+    if (f.app !== packageInfo.name) return null;
     if (typeof f.version !== "string") return null;
 
     for (const key of Object.values(StorageKey)) {
@@ -125,12 +127,12 @@ export default function App() {
 
   async function handleSave(e: any) {
     const save = await getDataForSave();
+    const fileName = `${save.name.toLocaleLowerCase()}.json`;
 
     const a = e.target.closest("a");
-    console.log(save);
-    const file = new Blob([JSON.stringify(save)], { type: "application/json" });
+    const file = new Blob([JSON.stringify(save, null, "\t")], { type: "application/json" });
     a.href = URL.createObjectURL(file);
-    a.download = "RPG-note.json";
+    a.download = fileName;
   }
 
   async function handleLoad(e: React.ChangeEvent<HTMLInputElement>) {
@@ -149,7 +151,6 @@ export default function App() {
       }
     }
   }
-  console.log({ reload })
 
   return <Split
     style={{ display: "flex", flexGrow: 1, backgroundColor: colors.backgroundSecondary }}
@@ -158,7 +159,7 @@ export default function App() {
     direction="horizontal"
   >
     <Flex>
-      <Flex align="center">
+      <Flex align="center" style={{ marginLeft: "16px", marginRight: "16px", marginBottom: "2px" }}>
         <Flex row align="center">
           <img src="/logo192.png" alt="RPG note logo" style={{ height: "48px", width: "48px" }} />
           <h1>
@@ -173,10 +174,11 @@ export default function App() {
           backgroundSize: "cover",
           backgroundRepeat: "no-repeat",
           borderRadius: "100px 100px 0px 0px",
-          boxShadow: "0px 0px 16px rgba(0,0,0,0.9)"
+          boxShadow: "0px 0px 16px rgba(0,0,0,0.9)",
+          marginBottom: "4px",
         }} />
-        <h2 style={{ fontSize: "40px" }}>Kelvin</h2>
-        <p>gnome mág z Gnomereganu</p>
+        <InputText style={{ fontSize: "40px", fontWeight: "bold" }} storageKey={StorageKey.Name} reload={reload} />
+        <InputText storageKey={StorageKey.Motto} reload={reload} />
       </Flex>
       <Content storageKey={StorageKey.Role} reload={reload} noToolbar />
     </Flex>
@@ -219,12 +221,34 @@ function Content({ storageKey, title, reload, ...editorProps }: { storageKey: St
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reload]);
 
-  console.log(storageKey, text);
-
   return <Flex grow={1} basis={100}>
     {title && <h3 style={{ paddingLeft: "8px", margin: "2px" }}>{title}</h3>}
     <Flex grow={1} style={{ backgroundColor: colors.backgroundPrimary, borderRadius: "16px 16px 0px 0px" }}>
       <Editor {...editorProps} value={text} onChange={setText} />
     </Flex>
   </Flex>
+}
+
+function InputText({ style, storageKey, reload }: { style?: CSSProperties, storageKey: StorageKey, reload: boolean }) {
+  const [focus, setFocus] = useState(false);
+  const [text, setText, reloadText] = useStoredState(storageKey, "");
+
+  useEffect(() => {
+    reloadText();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reload]);
+
+  return <input
+    style={{
+      borderBottomWidth: "2px",
+      borderBottomStyle: "solid",
+      borderBottomColor: focus ? colors.primary : "transparent",
+      ...style,
+    }}
+    type="text"
+    value={text}
+    onFocus={() => setFocus(true)}
+    onBlur={() => setFocus(false)}
+    onChange={e => setText(e.target.value)}
+  />
 }

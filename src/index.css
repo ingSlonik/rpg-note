@@ -37,6 +37,21 @@ p {
   margin: 4px;
 }
 
+input {
+  display: block;
+  width: 100%;
+  font-family: 'Caveat', cursive;
+  font-size: 20px;
+  color: #000000;
+  text-align: center;
+  border: none;
+  background-color: transparent;
+  border-radius: 4px;
+}
+input:focus{
+  outline: none;
+}
+
 /* components */
 .button {
   cursor: pointer;
