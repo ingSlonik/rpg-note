@@ -63,6 +63,7 @@ input:focus{
 }
 .button .text{
   transition: 0.3s;
+  white-space: nowrap;
 }
 
 /* react-quill */
