@@ -1,31 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap');
+
 html, body {
   margin: 0px;
   padding: 0px;
 }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Caveat', cursive;
+  font-size: 20px;
+  color: #000000;
+  box-sizing: content-box;
 }
 
-#root {
+#rpg-note {
   display: flex;
   height: 100vh;
 }
 
-
-.gutter {
-  background: #AAAAAA;
-  /* flex-shrink: 0; */
+h1 {
+  font-size: 32px;
+  font-weight: bold;
+}
+h2 {
+  font-size: 27px;
+  margin-top: 16px;
+  margin-bottom: 0px;
+  font-weight: bold;
+}
+h3 {
+  font-size: 21;
+  margin-top: 8px;
+  margin-bottom: 0px;
+  font-weight: bold;
 }
 
+p {
+  margin: 4px;
+}
+
+/* components */
+.button {
+  cursor: pointer;
+  transition: 0.3s;
+}
+.button .text{
+  transition: 0.3s;
+}
+
+/* react-quill */
+#rpg-note .quill {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+#rpg-note .no-toolbar .ql-toolbar {
+  display: none;
+}
+#rpg-note .ql-toolbar {
+  border: none;
+  font-family: 'Caveat', cursive;
+  padding: 4px;
+}
+#rpg-note .ql-container {
+  position: relative;
+  display: flex;
+  flex-grow: 1;
+  height: auto;
+  border: none;
+  font-family: 'Caveat', cursive;
+  font-size: 16px;
+  border-radius: 16px 16px 0px 0px;
+  box-shadow: inset 0px 2px 8px rgba(0,0,0,0.1);
+}
+#rpg-note .ql-editor {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+/* react-split */
+.gutter {
+  flex-shrink: 0;
+}
 .gutter-horizontal {
   cursor: ew-resize;
 }
-
 .gutter-vertical {
   cursor: ns-resize;
 }
 
+.gutter-horizontal::after, .gutter-vertical::after {
+  font-family: monospace;
+  color: rgba(0,0,0,0.2);
+  font-size: 14px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gutter-horizontal::after {
+  content: "║";
+}
+.gutter-vertical::after {
+  content: "══";
+}

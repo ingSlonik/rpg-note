@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -8,19 +8,32 @@ import 'react-quill/dist/quill.snow.css';
 // import Monaco from "@monaco-editor/react";
 // import ReactMarkdown from 'react-markdown';
 
-type EditorProps = {
+export type EditorProps = {
     value: string,
+    noToolbar?: boolean,
     onChange: (value: string) => void,
 }
 
-export default function Editor({ value, onChange }: EditorProps) {
+export default function Editor({ value, noToolbar, onChange }: EditorProps) {
 
-    return <div style={{ flexGrow: 1, position: "relative" }}>
-        <ReactQuill
-            value={value}
-            onChange={onChange}
-        />
-    </div>;
+    return <ReactQuill
+        className={noToolbar ? "no-toolbar" : ""}
+        modules={{
+            toolbar: noToolbar ? [] : [
+                [{ 'header': [1, 2, 3, 4, false] }],
+                ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+                [{ 'color': [] }, { 'background': [] }],
+
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+                [{ 'align': [] }],
+
+                ['image', 'clean'],
+                // [{ 'font': [] }],
+            ],
+        }}
+        value={value}
+        onChange={onChange}
+    />;
 }
 
 /* draft-js
