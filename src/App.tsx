@@ -1,8 +1,9 @@
 import React, { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
-import { mdiFloppy, mdiUpload, mdiFountainPen, mdiArmFlex, mdiSword } from '@mdi/js';
+import { mdiFloppy, mdiUpload, mdiFountainPen, mdiArmFlex, mdiSword, mdiDeleteOutline } from '@mdi/js';
 
 import Split from "react-split";
 import easyDB from "easy-db-browser";
+import { resizeImage } from "easy-image-resizer";
 
 import Editor, { EditorProps } from './Editor';
 import { colors } from './colors';
@@ -10,13 +11,12 @@ import { ButtonIcon, Flex } from './Components';
 
 import packageInfo from "../package.json";
 
-const COLLECTION_STORED_STATE = "rpg-note-state";
-const { select, update } = easyDB({});
 
 
 enum StorageKey {
   Name = "name",
   Motto = "motto",
+  Picture = "picture",
   Role = "role",
   Characters = "characters",
   ActionNote = "actionNote",
@@ -34,12 +34,30 @@ enum Page {
   Skills,
   Equipment,
   Note,
-}
+};
 
 type StoredStateRow<T = string> = {
   key: string,
   value: T,
-}
+};
+
+const COLLECTION_STORED_STATE = "rpg-note-state";
+const { select, update } = easyDB({});
+
+const PICTURE_SIZE = { width: 200, height: 250 };
+const EMPTY_SAVE: Save = {
+  app: packageInfo.name,
+  version: packageInfo.version,
+  picture: "",
+  name: "Hero",
+  motto: "The hero of the notebooks",
+  role: "<h3>Stav</h3><p>❤️&#9;10 životů (max 20)</p><p>🍾&#9;10 many (max 20)</p><p>💰&#9;10 gold 9 silver 8 copper</p><p>⏳&#9;1. ledna 12021</p><p>⛅&#9;pěkný den</p><br><p>Rychlá kapsa:</p><p>-</p>",
+  characters: "",
+  actionNote: "",
+  equipment: "",
+  note: "",
+  skills: "",
+};
 
 async function updateStoredValue(key: StorageKey, value: string) {
   await update(COLLECTION_STORED_STATE, key, { key, value });
@@ -119,10 +137,50 @@ export default function App() {
   const fileInput = useRef<null | HTMLInputElement>(null);
   const [page, setPage] = useState(Page.Note);
 
+  const [picture, setPicture, reloadPicture] = useStoredState(StorageKey.Picture, "");
+
   const [reload, setReload] = useState(false);
 
   function handleReloadStoredState() {
     setReload(r => !r);
+    reloadPicture();
+  }
+
+  function handleLoadDialog() {
+    if (fileInput.current) {
+      const input = fileInput.current;
+      input.name = "load";
+      input.accept = ".json";
+      input.click();
+    }
+  }
+
+  function handlePictureDialog() {
+    if (fileInput.current) {
+      const input = fileInput.current;
+      input.name = "picture";
+      input.accept = ".jpg,.jpeg,.png,.svg";
+      input.click();
+    }
+  }
+
+  function handleFile() {
+    if (fileInput.current) {
+      const input = fileInput.current;
+      const file = input.files?.[0];
+
+      if (file) {
+        switch (input.name) {
+          case "load": return handleLoad(file);
+          case "picture": return handlePicture(file);
+        }
+      }
+    }
+  }
+
+  async function handlePicture(file: File) {
+    const url = await resizeImage(file, { maxWidth: 200 * 2, maxHeight: 250 * 2 });
+    setPicture(url);
   }
 
   async function handleSave(e: any) {
@@ -135,21 +193,22 @@ export default function App() {
     a.download = fileName;
   }
 
-  async function handleLoad(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+  async function handleLoad(file: File) {
+    const text = await file.text();
+    const load = checkLoadFile(text);
 
-    if (file) {
-      const text = await file.text();
-      const load = checkLoadFile(text);
-
-      if (load !== null) {
-        await updateCollection(load);
-        handleReloadStoredState();
-      } else {
-        // TODO: notify user
-        console.log("Wrong format of loaded file.");
-      }
+    if (load !== null) {
+      await updateCollection(load);
+      handleReloadStoredState();
+    } else {
+      // TODO: notify user
+      console.log("Wrong format of loaded file.");
     }
+  }
+
+  async function handleDelete() {
+    await updateCollection(EMPTY_SAVE);
+    handleReloadStoredState();
   }
 
   return <Split
@@ -159,6 +218,8 @@ export default function App() {
     direction="horizontal"
   >
     <Flex>
+      <input ref={fileInput} type="file" style={{ display: "none" }} onChange={handleFile} />
+
       <Flex align="center" style={{ marginLeft: "16px", marginRight: "16px", marginBottom: "2px" }}>
         <Flex row align="center">
           <img src="/logo192.png" alt="RPG note logo" style={{ height: "48px", width: "48px" }} />
@@ -167,16 +228,22 @@ export default function App() {
             <span style={{ paddingLeft: "8px", fontSize: "16px", opacity: 0.5 }}>v{packageInfo.version}</span>
           </h1>
         </Flex>
-        <div style={{
-          width: "200px", height: "250px",
-          backgroundImage: "url(/kelvin-face.png)",
-          backgroundPosition: "center",
-          backgroundSize: "cover",
-          backgroundRepeat: "no-repeat",
-          borderRadius: "100px 100px 0px 0px",
-          boxShadow: "0px 0px 16px rgba(0,0,0,0.9)",
-          marginBottom: "4px",
-        }} />
+        <div
+          style={{
+            width: `${PICTURE_SIZE.width}px`,
+            height: `${PICTURE_SIZE.height}px`,
+            backgroundImage: `url(${picture ? picture : "/logo512.png"})`,
+            backgroundPosition: picture ? "center center" : "center 45px",
+            backgroundSize: picture ? "cover" : "contain",
+            backgroundRepeat: "no-repeat",
+            borderRadius: "100px 100px 0px 0px",
+            boxShadow: "0px 0px 16px rgba(0,0,0,0.9)",
+            marginBottom: "4px",
+
+            cursor: "pointer",
+          }}
+          onClick={handlePictureDialog}
+        />
         <InputText style={{ fontSize: "40px", fontWeight: "bold" }} storageKey={StorageKey.Name} reload={reload} />
         <InputText storageKey={StorageKey.Motto} reload={reload} />
       </Flex>
@@ -188,8 +255,9 @@ export default function App() {
           <Flex row style={{ position: "absolute", zIndex: 6, top: "4px", right: "4px" }}>
             <ButtonIcon icon={mdiFloppy} text="Uložit" onClick={handleSave} />
             <div style={{ width: "8px" }} />
-            <ButtonIcon icon={mdiUpload} text="Načíst" onClick={() => fileInput.current?.click()} />
-            <input ref={fileInput} type="file" accept=".json" style={{ display: "none" }} onChange={handleLoad} />
+            <ButtonIcon icon={mdiUpload} text="Načíst" onClick={handleLoadDialog} />
+            <div style={{ width: "8px" }} />
+            <ButtonIcon icon={mdiDeleteOutline} text="Vše smazat" onClick={handleDelete} />
           </Flex>
 
           {page === Page.Skills && <Content title="Dovednosti" storageKey={StorageKey.Skills} reload={reload} />}
