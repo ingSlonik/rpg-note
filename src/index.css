@@ -46,7 +46,6 @@ input {
   width: 100%;
   font-family: 'Caveat', cursive;
   font-size: 20px;
-  color: #000000;
   text-align: center;
   border: none;
   background-color: transparent;
@@ -54,16 +53,6 @@ input {
 }
 input:focus{
   outline: none;
-}
-
-/* components */
-.button {
-  cursor: pointer;
-  transition: 0.3s;
-}
-.button .text{
-  transition: 0.3s;
-  white-space: nowrap;
 }
 
 /* react-quill */
