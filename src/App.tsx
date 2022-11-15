@@ -1,33 +1,24 @@
-import React, { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
-import { mdiFloppy, mdiUpload, mdiFountainPen, mdiArmFlex, mdiSword, mdiDeleteOutline } from '@mdi/js';
+import React, { CSSProperties, useEffect, useRef, useState } from 'react';
+import {
+  mdiFloppy, mdiUpload, mdiFountainPen, mdiArmFlex, mdiSword, mdiDeleteOutline, mdiCog, mdiPalette, mdiEarth,
+  mdiBrightness5, mdiBrightness7, mdiPaperRollOutline,
+} from '@mdi/js';
 
 import Split from "react-split";
-import easyDB from "easy-db-browser";
 import { resizeImage } from "easy-image-resizer";
 
 import Editor, { EditorProps } from './Editor';
-import { colors } from './colors';
 import { ButtonIcon, Flex } from './Components';
 
 import packageInfo from "../package.json";
+import { checkLoadFile, EMPTY_SAVE, getDataForSave, StorageKey, updateCollection, useStoredState } from './setvices';
+import { useColors, useTheme } from './Theme';
 
-
-enum StorageKey {
-  Name = "name",
-  Motto = "motto",
-  Picture = "picture",
-  Role = "role",
-  Characters = "characters",
-  ActionNote = "actionNote",
-  Skills = "skills",
-  Equipment = "equipment",
-  Note = "note",
-};
-
-type Save = {
-  app: string,
-  version: string,
-} & { [key in StorageKey]: string };
+enum Menu {
+  File,
+  Style,
+  Language,
+}
 
 enum Page {
   Skills,
@@ -35,105 +26,16 @@ enum Page {
   Note,
 };
 
-type StoredStateRow<T = string> = {
-  key: string,
-  value: T,
-};
-
-const COLLECTION_STORED_STATE = "rpg-note-state";
-const { select, update } = easyDB({});
-
 const PICTURE_SIZE = { width: 200, height: 250 };
-const EMPTY_SAVE: Save = {
-  app: packageInfo.name,
-  version: packageInfo.version,
-  picture: "",
-  name: "Hero",
-  motto: "The hero of the notebooks",
-  role: "<h3>Stav</h3><p>❤️&#9;10 životů (max 20)</p><p>🍾&#9;10 many (max 20)</p><p>💰&#9;10 gold 9 silver 8 copper</p><p>⏳&#9;1. ledna 12021</p><p>⛅&#9;pěkný den</p><br><p>Rychlá kapsa:</p><p>-</p>",
-  characters: "",
-  actionNote: "",
-  equipment: "",
-  note: "",
-  skills: "",
-};
 
-async function updateStoredValue(key: StorageKey, value: string) {
-  await update(COLLECTION_STORED_STATE, key, { key, value });
-}
-
-async function getDataForSave() {
-  const data = await select<StoredStateRow>(COLLECTION_STORED_STATE);
-
-  const saveData: Partial<Save> = {
-    app: packageInfo.name,
-    version: packageInfo.version,
-  };
-
-  for (const key of Object.values(StorageKey)) {
-    const row = data[key];
-    if (row !== null && typeof row === "object" && typeof row.value === "string") {
-      saveData[key] = row.value;
-    } else {
-      saveData[key] = "";
-    }
-  }
-
-  return saveData as Save;
-}
-async function updateCollection(load: Save) {
-  for (const key of Object.values(StorageKey)) {
-    await updateStoredValue(key, load[key]);
-  }
-}
-
-function checkLoadFile(text: string): null | Save {
-  try {
-    const f = JSON.parse(text);
-
-    if (typeof f !== "object" || f === null) return null;
-
-    if (f.app !== packageInfo.name) return null;
-    if (typeof f.version !== "string") return null;
-
-    for (const key of Object.values(StorageKey)) {
-      if (typeof f[key] !== "string") return null;
-    }
-
-    return f;
-  } catch (e) {
-    return null;
-  }
-}
-
-function useStoredState(key: StorageKey): [state: string, setState: (state: string) => void, reload: () => void] {
-  const [change, setChange] = useState(false);
-  const [state, setState] = useState(EMPTY_SAVE[key]);
-
-  useEffect(() => {
-    select<StoredStateRow>(COLLECTION_STORED_STATE, key).then(row => {
-      if (row && "value" in row && typeof row.value === "string") {
-        setState(row.value);
-      }
-    });
-  }, [key, change]);
-
-  const set = useMemo(() => {
-    return (state: string) => {
-      setState(state);
-      updateStoredValue(key, state);
-    }
-  }, [key]);
-
-  const reload = useMemo(() => {
-    return () => setChange(ch => !ch);
-  }, []);
-
-  return [state, set, reload];
-}
 
 export default function App() {
+  const { theme, setTheme } = useTheme();
+  const colors = useColors();
+
   const fileInput = useRef<null | HTMLInputElement>(null);
+  const [menu, setMenu] = useState<null | Menu>(null);
+
   const [page, setPage] = useState(Page.Note);
 
   const [picture, setPicture, reloadPicture] = useStoredState(StorageKey.Picture);
@@ -211,7 +113,7 @@ export default function App() {
   }
 
   return <Split
-    style={{ display: "flex", flexGrow: 1, backgroundColor: colors.backgroundSecondary }}
+    style={{ display: "flex", flexGrow: 1 }}
     sizes={[20, 80]}
     minSize={200}
     direction="horizontal"
@@ -252,11 +154,33 @@ export default function App() {
       <Split style={{ display: "flex", flexDirection: "column", flexGrow: 1 }} direction="vertical">
         <Flex grow={1} style={{ position: "relative" }}>
           <Flex row style={{ position: "absolute", zIndex: 6, top: "4px", right: "4px" }}>
-            <ButtonIcon icon={mdiFloppy} text="Uložit" onClick={handleSave} />
+            <ButtonIcon icon={mdiCog} text="Soubor" open={menu === Menu.File} active={menu === Menu.File} onClick={() => setMenu(menu === Menu.File ? null : Menu.File)} />
             <div style={{ width: "8px" }} />
-            <ButtonIcon icon={mdiUpload} text="Načíst" onClick={handleLoadDialog} />
+            <ButtonIcon icon={mdiEarth} text="Jazyk" open={menu === Menu.Language} active={menu === Menu.Language} onClick={() => setMenu(menu === Menu.Language ? null : Menu.Language)} />
             <div style={{ width: "8px" }} />
-            <ButtonIcon icon={mdiDeleteOutline} text="Vše smazat" onClick={handleDelete} />
+            <ButtonIcon icon={mdiPalette} text="Styl" open={menu === Menu.Style} active={menu === Menu.Style} onClick={() => setMenu(menu === Menu.Style ? null : Menu.Style)} />
+          </Flex>
+
+          <Flex align="flex-end" style={{ position: "absolute", zIndex: 15, top: "52px", right: "104px", height: menu === Menu.File ? "162px" : "0px", overflow: "hidden", minWidth: "152px", transition: "0.3s" }}>
+            <ButtonIcon open icon={mdiFloppy} text="Uložit" onClick={handleSave} />
+            <div style={{ height: "8px" }} />
+            <ButtonIcon open icon={mdiUpload} text="Načíst" onClick={handleLoadDialog} />
+            <div style={{ height: "8px" }} />
+            <ButtonIcon open icon={mdiDeleteOutline} text="Vše smazat" onClick={handleDelete} />
+          </Flex>
+
+          <Flex align="flex-end" style={{ position: "absolute", zIndex: 15, top: "52px", right: "52px", height: menu === Menu.Language ? "162px" : "0px", overflow: "hidden", minWidth: "152px", transition: "0.3s" }}>
+            <ButtonIcon open text="Čeština" onClick={() => { }} />
+            <div style={{ height: "8px" }} />
+            <ButtonIcon open text="English" onClick={() => { }} />
+          </Flex>
+
+          <Flex align="flex-end" style={{ position: "absolute", zIndex: 15, top: "52px", right: "4px", height: menu === Menu.Style ? "162px" : "0px", overflow: "hidden", minWidth: "152px", transition: "0.3s" }}>
+            <ButtonIcon open icon={mdiBrightness5} text="Světlá" active={theme === "light"} onClick={() => setTheme("light")} />
+            <div style={{ height: "8px" }} />
+            <ButtonIcon open icon={mdiBrightness7} text="Tmavá" active={theme === "dark"} onClick={() => setTheme("dark")} />
+            <div style={{ height: "8px" }} />
+            <ButtonIcon open icon={mdiPaperRollOutline} text="Pergamen" active={theme === "parchment"} onClick={() => setTheme("parchment")} />
           </Flex>
 
           {page === Page.Skills && <Content title="Dovednosti" storageKey={StorageKey.Skills} reload={reload} />}
@@ -281,6 +205,8 @@ export default function App() {
 }
 
 function Content({ storageKey, title, reload, ...editorProps }: { storageKey: StorageKey, reload: boolean, title?: string } & Partial<EditorProps>) {
+  const colors = useColors();
+
   const [text, setText, reloadText] = useStoredState(storageKey);
 
   useEffect(() => {
@@ -297,6 +223,8 @@ function Content({ storageKey, title, reload, ...editorProps }: { storageKey: St
 }
 
 function InputText({ style, storageKey, reload }: { style?: CSSProperties, storageKey: StorageKey, reload: boolean }) {
+  const colors = useColors();
+
   const [focus, setFocus] = useState(false);
   const [text, setText, reloadText] = useStoredState(storageKey);
 
@@ -307,6 +235,7 @@ function InputText({ style, storageKey, reload }: { style?: CSSProperties, stora
 
   return <input
     style={{
+      color: colors.text,
       borderBottomWidth: "2px",
       borderBottomStyle: "solid",
       borderBottomColor: focus ? colors.primary : "transparent",
