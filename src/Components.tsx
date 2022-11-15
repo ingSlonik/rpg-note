@@ -1,7 +1,6 @@
 import { CSSProperties, ReactNode, useState, createElement } from "react";
 import Icon from '@mdi/react';
-
-import { colors } from "./colors";
+import { useColors } from "./Theme";
 
 type FlexProps = {
     tag?: string,
@@ -37,10 +36,14 @@ type ButtonProps = {
 };
 
 export function Button({ active, style, children, onClick }: ButtonProps) {
+    const colors = useColors();
+
     const [hover, setHover] = useState(false);
     return <div
         className="button"
         style={{
+            cursor: "pointer",
+            transition: "0.3s",
             fontSize: "18px",
             fontWeight: "bold",
             margin: "4px 16px",
@@ -59,14 +62,17 @@ export function Button({ active, style, children, onClick }: ButtonProps) {
 }
 
 type ButtonIconProps = {
-    icon: string,
+    open?: boolean,
+    icon?: string,
     text: string,
     active?: boolean,
     style?: CSSProperties,
     onClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void,
 };
 
-export function ButtonIcon({ icon, text, active, style, onClick }: ButtonIconProps) {
+export function ButtonIcon({ open, icon, text, active, style, onClick }: ButtonIconProps) {
+    const colors = useColors();
+
     const [hover, setHover] = useState(false);
 
     return <Flex
@@ -76,9 +82,12 @@ export function ButtonIcon({ icon, text, active, style, onClick }: ButtonIconPro
         justify="center"
         className="button"
         style={{
-            width: hover ? "142px" : "42px",
+            cursor: "pointer",
+            transition: "0.3s",
+            width: hover || open ? "142px" : "42px",
             height: "42px",
             borderRadius: "32px",
+            boxShadow: "0px 0px 8px rgba(0,0,0,0.5)",
             backgroundColor: active || hover ? colors.primaryDark : colors.primary,
             color: active || hover ? colors.textDark : colors.text,
             ...style,
@@ -87,7 +96,7 @@ export function ButtonIcon({ icon, text, active, style, onClick }: ButtonIconPro
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
     >
-        <Flex className="text" align="center" style={{ width: hover ? "100px" : "0px", overflow: "hidden" }}>{text}</Flex>
-        <Icon path={icon} size={1} />
+        <Flex align="center" style={{ width: hover || open ? "100px" : "0px", overflow: "hidden", whiteSpace: "nowrap", transition: "0.3s" }}>{text}</Flex>
+        {icon && <Icon path={icon} size={1} />}
     </Flex >;
 }
