@@ -6,6 +6,7 @@ import packageInfo from "../package.json";
 
 export enum StorageKey {
     Theme = "theme",
+    Language = "language",
 
     Name = "name",
     Motto = "motto",
@@ -37,6 +38,7 @@ export const EMPTY_SAVE: Save = {
     version: packageInfo.version,
 
     theme: "light",
+    language: "cs",
 
     picture: "",
     name: "Hero",
