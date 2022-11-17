@@ -40,7 +40,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const colors = themeColors[theme];
 
     return <ThemeContext.Provider value={{ theme, setTheme }}>
-        <Flex style={{ color: colors.text, backgroundColor: colors.backgroundSecondary }}>
+        <Flex grow={1} style={{ color: colors.text, background: colors.backgroundSecondary }}>
             {children}
         </Flex>
     </ThemeContext.Provider>
@@ -84,7 +84,9 @@ const themeColors: { [key in Theme]: Colors } = {
         text: "#000000",
         textDark: "#FFFFFF",
         textLight: "#000000",
-        backgroundPrimary: "#ccb78f",
-        backgroundSecondary: "#9d7236",
+        // backgroundPrimary: "#ccb78f",
+        // backgroundSecondary: "#9d7236",
+        backgroundPrimary: "url(/images/parchment.svg)",
+        backgroundSecondary: "url(/images/wood.svg)",
     }
 };
