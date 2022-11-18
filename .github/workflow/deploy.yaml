@@ -1,0 +1,34 @@
+
+name: Deploy to Google App Engine
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - id: 'build'
+      name: 'Build application'
+      run: npm install
+      run: npm run build
+
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        credentials_json: ${{ secrets.gcp_credentials }}
+
+    - id: 'deploy'
+      name: 'Deploy to Google Cloud'
+      uses: 'google-github-actions/deploy-appengine@v0'
+
+    - id: 'test'
+      name: 'Test the deployed URL'
+      run: 'curl "${{ steps.deploy.outputs.url }}"'
