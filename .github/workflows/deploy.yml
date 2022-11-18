@@ -16,7 +16,7 @@ jobs:
 
     - id: 'build'
       name: 'Build application'
-      run: npm install & npm run build
+      run: npm install && npm run build
 
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
