@@ -17,6 +17,7 @@
     "@types/react-dom": "^18.0.8",
     "easy-db-browser": "^2.4.0",
     "easy-image-resizer": "^0.2.0",
+    "node-ssh": "^13.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-quill": "^2.0.0",
